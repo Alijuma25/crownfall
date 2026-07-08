@@ -17,24 +17,63 @@ const WS_URL = import.meta.env.VITE_WS_URL ||
   `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`);
 
 export function useGameSocket() {
-  const wsRef = useRef(null);
-  const store = useGameStore();
+  const wsRef    = useRef(null);
+  const retryRef = useRef(null);
+  const store    = useGameStore();
 
   useEffect(() => {
-    const ws = new WebSocket(WS_URL);
-    wsRef.current = ws;
-    store.setWs(ws);
+    let alive = true;
 
-    ws.onopen  = () => { store.setConnected(true);  console.log('[WS] Connected'); };
-    ws.onclose = () => { store.setConnected(false); console.log('[WS] Disconnected'); };
-    ws.onerror = err => console.error('[WS]', err);
-    ws.onmessage = ev => {
-      let msg;
-      try { msg = JSON.parse(ev.data); } catch { return; }
-      handleMessage(msg, store);
+    function connect() {
+      if (!alive) return;
+      try {
+        const ws = new WebSocket(WS_URL);
+        wsRef.current = ws;
+        store.setWs(ws);
+
+        // Watchdog: if no open/close within 10s, close and retry
+        const watchdog = setTimeout(() => {
+          console.warn('[WS] Connection timeout — retrying');
+          ws.close();
+        }, 10000);
+
+        ws.onopen = () => {
+          clearTimeout(watchdog);
+          store.setConnected(true);
+          console.log('[WS] Connected');
+        };
+
+        ws.onclose = () => {
+          clearTimeout(watchdog);
+          store.setConnected(false);
+          console.log('[WS] Disconnected — retrying in 3s');
+          if (alive) retryRef.current = setTimeout(connect, 3000);
+        };
+
+        ws.onerror = err => {
+          clearTimeout(watchdog);
+          console.error('[WS]', err);
+          ws.close();
+        };
+
+        ws.onmessage = ev => {
+          let msg;
+          try { msg = JSON.parse(ev.data); } catch { return; }
+          handleMessage(msg, store);
+        };
+      } catch (e) {
+        console.error('[WS] Failed to create socket:', e);
+        if (alive) retryRef.current = setTimeout(connect, 3000);
+      }
+    }
+
+    connect();
+
+    return () => {
+      alive = false;
+      clearTimeout(retryRef.current);
+      wsRef.current?.close();
     };
-
-    return () => ws.close();
   }, []); // eslint-disable-line
 
   return wsRef;

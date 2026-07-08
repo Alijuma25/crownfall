@@ -3,8 +3,8 @@
   "appName": "Crownfall",
   "webDir": "dist",
   "ios": {
-    "contentInset": "always",
-    "backgroundColor": "#1a1208"
+    "backgroundColor": "#1a1208",
+    "scrollEnabled": false
   },
   "plugins": {
     "SplashScreen": {
