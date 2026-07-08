@@ -1,5 +1,15 @@
 {
-  "appId": "com.crownfall.app",
+  "appId": "com.alijuma25.crownfall",
   "appName": "Crownfall",
-  "webDir": "dist"
+  "webDir": "dist",
+  "ios": {
+    "contentInset": "always",
+    "backgroundColor": "#1a1208"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "backgroundColor": "#1a1208"
+    }
+  }
 }

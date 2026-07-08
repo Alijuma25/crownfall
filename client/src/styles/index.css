@@ -2019,6 +2019,11 @@ h1, h2, h3, .menu-logo-title, .lobby-title, .htp-title,
   overflow: hidden;
   background: var(--bg);
   position: relative;
+  /* iOS safe areas — keeps content away from notch and home bar */
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* ── Compact HUD (44px) ── */
