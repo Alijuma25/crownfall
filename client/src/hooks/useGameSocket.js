@@ -8,9 +8,13 @@ import { useEffect, useRef } from 'react';
 import { useGameStore } from '../store/gameStore';
 
 // In dev, VITE_WS_URL points to the local server (ws://localhost:3001).
-// In production (served from the same server), auto-detect from window.location.
+// In Capacitor (native iOS/Android app), window.location.protocol is 'capacitor:'
+// so we fall back to the Railway production server.
+// In browser production, auto-detect from window.location.
+const RAILWAY_URL = 'wss://crownfall-production.up.railway.app';
 const WS_URL = import.meta.env.VITE_WS_URL ||
-  `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
+  (window.location.protocol === 'capacitor:' ? RAILWAY_URL :
+  `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`);
 
 export function useGameSocket() {
   const wsRef = useRef(null);
