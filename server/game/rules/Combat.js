@@ -18,21 +18,23 @@
 //   Red Spy (owner=Red, ctrl=Red) vs Red Soldier (owner=Red, ctrl=Red)
 //   → Both fields match → ALLIES → no combat (safe to share a square).
 //
-// Safe space rule preserved: pieces are immune at their controlled entry point.
+// Safe space rule: pieces are immune on ANY controlled color space (entry + all 3 zone tiles).
 // ============================================================
 
 import { PIECE_STATUS, PIECE_TYPES } from '../constants.js';
 
 /**
  * Safe Space Rule:
- * Each color's entry point is safe for whoever currently controls that empire's home.
- * A piece standing on their controlled entry point cannot be killed.
+ * A piece is safe on ANY colored space (entry point OR zone tiles) belonging to
+ * an empire currently controlled by that piece's controller.
  */
 function isOnSafeSpace(piece, position, state) {
   for (const [, empire] of Object.entries(state.empires)) {
-    if (empire.entryPoint === position) {
-      return empire.homeControlledBy === piece.controllerId;
-    }
+    if (empire.homeControlledBy !== piece.controllerId) continue;
+    // Entry point is safe
+    if (empire.entryPoint === position) return true;
+    // All 3 zone tiles are also safe
+    if ((empire.colorZone ?? []).includes(position)) return true;
   }
   return false;
 }

@@ -25,6 +25,12 @@ const COLOR_ZONE   = {
 };
 const ROLL_OPTIONS = { general: 3, spy: 2, soldier: 1 };
 
+// Faction display names
+const COLOR_NAME = {
+  red: 'Crimson', orange: 'Bronze', yellow: 'Gold',
+  green: 'Emerald', blue: 'Sapphire', silver: 'Silver',
+};
+
 // Official Crownfall faction colors
 const COLOR_HEX  = {
   red:    '#B22222',  // Crimson
@@ -314,15 +320,16 @@ export default function Board({ wsRef }) {
     const isZone  = COLOR_ZONE[zone]?.includes(i);
     const live    = zoneColorMap[i];
 
+    const zoneName = COLOR_NAME[zone] ?? zone;
     const label = isEntry
-      ? `${zone.charAt(0).toUpperCase() + zone.slice(1)} Entry`
+      ? `${zoneName} Entry`
       : isZone
-        ? `${zone.charAt(0).toUpperCase() + zone.slice(1)} Safe Zone`
+        ? `${zoneName} Safe Zone`
         : `Space ${i}`;
 
     const owner = live
-      ? players[Object.keys(players).find(id => players[id].color === live.color)]?.name ?? live.color
-      : zone.charAt(0).toUpperCase() + zone.slice(1);
+      ? players[Object.keys(players).find(id => players[id].color === live.color)]?.name ?? (COLOR_NAME[live.color] ?? live.color)
+      : zoneName;
 
     return (
       <div className="piece-tooltip" style={{ left: spaceTooltipPos.x + 14, top: spaceTooltipPos.y - 10 }}>
@@ -389,7 +396,7 @@ export default function Board({ wsRef }) {
             fontFamily="'Cinzel', Georgia, serif" fontWeight="700"
             letterSpacing="1.5"
             fill={dark}>
-            {color.toUpperCase()}
+            {(COLOR_NAME[color] ?? color).toUpperCase()}
           </text>
 
           {/* Home pieces */}

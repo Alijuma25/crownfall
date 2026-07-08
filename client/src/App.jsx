@@ -31,12 +31,12 @@ const PHASE_LABEL = {
 // ── Turn timer (60s countdown, auto-skip on 0) ───────────────
 const TURN_LIMIT = 60;
 
-function TurnTimer({ activePlayerId, phase, wsRef, isMyTurn }) {
+function TurnTimer({ activePlayerId, turnCount, phase, wsRef, isMyTurn }) {
   const startRef    = useRef(Date.now());
   const [elapsed, setElapsed] = useState(0);
   const sentRef     = useRef(false);
 
-  // Reset when turn changes
+  // Reset when turn changes OR when a bonus turn starts (turnCount increments both)
   useEffect(() => {
     startRef.current = Date.now();
     setElapsed(0);
@@ -45,7 +45,7 @@ function TurnTimer({ activePlayerId, phase, wsRef, isMyTurn }) {
       setElapsed(Math.floor((Date.now() - startRef.current) / 1000));
     }, 1000);
     return () => clearInterval(id);
-  }, [activePlayerId]); // one 60s window for the FULL turn (roll + assign + move)
+  }, [activePlayerId, turnCount]); // reset on new player AND on bonus turns
 
   // Auto-skip when countdown hits 0 on my turn
   useEffect(() => {
@@ -206,7 +206,7 @@ function MobileGameScreen({ wsRef }) {
   const activeLocFn  = useGameStore(s => s.activeLocalPlayerId);
 
   if (!gameState) return null;
-  const { players, phase, activePlayerId, bonusTurnQueue, winner, log, gameStartedAt } = gameState;
+  const { players, phase, activePlayerId, bonusTurnQueue, winner, log, gameStartedAt, turnCount } = gameState;
   const activePlayer  = players[activePlayerId];
   const activeHex     = COLOR_HEX[activePlayer?.color] ?? '#ffffff';
   const isMyTurn      = isMyTurnFn();
@@ -253,6 +253,7 @@ function MobileGameScreen({ wsRef }) {
           </span>
           <TurnTimer
             activePlayerId={activePlayerId}
+            turnCount={turnCount}
             phase={phase}
             wsRef={wsRef}
             isMyTurn={isMyTurn}
@@ -463,6 +464,7 @@ export default function App() {
         {/* Per-turn countdown — 60s */}
         <TurnTimer
           activePlayerId={activePlayerId}
+          turnCount={turnCount}
           phase={phase}
           wsRef={wsRef}
           isMyTurn={isMyTurn}
